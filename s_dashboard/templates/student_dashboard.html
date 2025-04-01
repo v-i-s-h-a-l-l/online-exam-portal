@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background:white;
+            min-height: 100vh;
+            padding-top: 80px; /* Prevents content from hiding behind the top bar */
+            padding-bottom: 40px; /* Prevents content from hiding behind the bottom bar */
+            display: flex;
+        }
+
+        .top-bar, .bottom-bar {
+            background-color: #a3133c;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .top-bar {
+            top: 0;
+        }
+
+        .bottom-bar {
+            bottom: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: #a3133c;
+            color: white;
+            width: 250px;
+            position: fixed;
+            top: 80px;
+            bottom: 40px;
+            left: 0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .sidebar p {
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .sidebar strong {
+            color:white;
+        }
+
+        /* Content Section */
+        .content {
+            margin-left: 270px; /* Adjusted for sidebar */
+            width: calc(100% - 270px);
+            padding: 20px;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-badge {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .status-upcoming { background-color: yellow; }
+        .status-in_progress { background-color: green; }
+        .status-completed { background-color: #d3d3d3; }
+
+        .timer {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .alert_in{
+            background-color: #e7cfd8;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-start">
+                <div class="logo-container">
+                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+                </div>
+            </div>
+            <div class="col-md-8 text-center text-md-start">
+                <h4 class="mb-0">Student Dashboard</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>Student Profile</h3>
+        <p><strong>Username:</strong> {{ student.username }}</p>
+        <p><strong>Dept:</strong> {{ student.dept}}</p>
+        <p><strong>Year:</strong> {{ student.year }}</p>
+        <p><strong>Email:</strong> {{ student.emailid }}</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="d-flex justify-content-between  mb-4">
+            <div class="align-items-right">
+                <a href="{% url 'logout' %}" class="btn btn-danger ms-3">Logout</a>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for test_info in tests %}
+            <div class="col-md-6 col-lg-4">
+                <div class="test-card p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h4 class="mb-0">{{ test_info.test.subject }}</h4>
+                        <span class="status-badge status-{{ test_info.status }}">
+                            {{ test_info.status|title }}
+                        </span>
+                    </div>
+                    
+                    <p class="mb-2"><strong>Code:</strong> {{ test_info.test.subject_code }}</p>
+                    <p class="mb-2"><strong>Date:</strong> {{ test_info.test.date_of_test }}</p>
+                    <p class="mb-2"><strong>Time:</strong> {{ test_info.test.start_time }}</p>
+                    <p class="mb-2"><strong>Duration:</strong> {{ test_info.test.duration }}</p>
+                    
+                    {% if test_info.completed %}
+                        <p class="score mb-2">Score: {{ test_info.score }}%</p>
+                        <a href="{% url 'test_result' test_info.test.test_id %}" class="btn btn-info w-100">
+                            View Results
+                        </a>
+                    {% else %}
+                        {% if test_info.status == 'upcoming' %}
+                            <p class="timer">Starts in: {{ test_info.time_to_start }}</p>
+                            <button class="btn btn-secondary w-100" disabled>
+                                Not Started Yet
+                            </button>
+                        {% elif test_info.status == 'in_progress' %}
+                            <p class="timer">Time remaining: {{ test_info.time_remaining }}</p>
+                            {% if test_info.can_start %}
+                                <a href="{% url 'start_test' %}?test_id={{ test_info.test.test_id }}" 
+                                   class="btn btn-success w-100">
+                                    Start Test
+                                </a>
+                            {% endif %}
+                        {% elif test_info.status == 'completed' %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                Test Completed
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert_in">
+                    No tests available for your department and year.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <p class="mb-0">© 2025 Your Organization. All Rights Reserved.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% if has_active_tests %}
+    <script>
+        // Refresh the page every minute to update timers
+        setTimeout(function() {
+            window.location.reload();
+        }, 60000);
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .result-card {
+            background:#c48294;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 8px solid;
+        }
+        .score-circle.excellent {
+            border-color: #a3133c;
+        }
+        .score-circle.good {
+            border-color: #a3133c;
+        }
+        .score-circle.average {
+            border-color: #a3133c;
+        }
+        .score-circle.poor {
+            border-color: #dc3545;
+        }
+        .leaderboard-card {
+            background:#e7cfd8 ;
+        }
+        .table-hover tbody tr:hover {
+            background-color:white;
+        }
+        .your-rank {
+            background-color: #b96a82 !important;
+        }
+        .top-bar, .bottom-bar {
+            background-color: #a3133c;
+            color: white;
+            padding: 8px 0;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            left: 0;
+            z-index: 1000;
+        }
+        .top-bar {
+            top: 0;
+        }
+        .bottom-bar {
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-start">
+                <div class="logo-container">
+                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+                </div>
+            </div>
+            <div class="col-md-8 text-center text-md-start">
+                <h4 class="mb-0">Attend the test</h4>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white">Test Results</h2>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+
+        <div class="row">
+            <!-- Test Result Summary -->
+            <div class="col-md-6 mb-4">
+                <div class="result-card">
+                    <h3 class="text-center mb-4">{{ test.subject }} - {{ test.subject_code }}</h3>
+                    
+                    {% with percentage=result.score %}
+                    <div class="score-circle {% if percentage >= 90 %}excellent{% elif percentage >= 70 %}good{% elif percentage >= 50 %}average{% else %}poor{% endif %}">
+                        <div class="h2 mb-0">{{ percentage }}%</div>
+                        <small>Score</small>
+                    </div>
+                    {% endwith %}
+
+                    <div class="text-center mt-4">
+                        <p class="mb-2">Correct Answers: {{ result.correct_answers }} / {{ result.total_questions }}</p>
+                        <p class="mb-2">Completed on: {{ result.completed_at|date:"F d, Y" }} at {{ result.completed_at|time:"H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="col-md-6 mb-4">
+                <div class="result-card leaderboard-card">
+                    <h3 class="text-center mb-4">Leaderboard</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Student</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in leaderboard %}
+                                <tr {% if entry.student.username == result.student.username %}class="your-rank"{% endif %}>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ entry.student.username }}</td>
+                                    <td>{{ entry.score }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-bar">
+        <p class="mb-0">© 2025 Your Organization. All Rights Reserved.</p>
+    </div>
+</body>
+</html> 
