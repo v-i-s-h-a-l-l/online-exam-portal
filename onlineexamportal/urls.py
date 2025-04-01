@@ -30,7 +30,7 @@ from s_dashboard.views import student_dashboard, start_test, submit_test, test_r
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("home/", home, name="home"),
+    path("", home, name="home"),
     path("sucess/", sucess, name="sucess"),
     path("update-password/", update_password, name="update_password"),
     path("teacher_admin/", teacher_admin, name="teacher_admin"),
